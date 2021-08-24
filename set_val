@@ -1,0 +1,150 @@
+ $("body").on("focusout", "select.set_val", function (event)
+    {
+        var map = $.map($("input.edit:checkbox:checked"), function (el)
+        {
+            return $(el).attr("data-id");
+        });
+
+        var id = $(this)
+            .parents("tr")
+            .attr("data-id");
+        var prop_column = $(this)
+            .parents('td')
+            .attr("data-prop")
+        var prop = $(this)
+            .parent("span")
+            .attr("data-prop");
+        var val = $(this)
+            .find("option:selected")
+            .val();
+        if (prop == "SECTION_PROV")
+        {
+            var provider_id = $(this)
+                .parent("span")
+                .attr("data-provider_id");
+        }
+        var text = $(this)
+            .find("option:selected")
+            .text();
+
+        if (
+            $(this)
+                .parents("span")
+                .attr("data-multy") == "Y"
+        )
+        {
+            var val = [];
+            var text = "";
+            $(this)
+                .find("option:selected")
+                .each(function (key, index)
+                {
+                    val.push($(index).val());
+                    text += $(index).text() + ",";
+                });
+        }
+        if (map.length > 0)
+        {
+            if (val == "" || val == 0) val = "on";
+            var form = [];
+            form.push({ name: prop, value: val });
+            var data = { id: map, form: form };
+
+            send("edit", data);
+            for (var i = 0; i < map.length; i++)
+            {
+                $("tr[data-id=" + map[i] + "]")
+                    .find("td." + prop_column)
+                    .find("span[data-prop=" + prop + "]")
+                    .removeClass("red_bg2")
+                    .removeClass("form-control")
+                    .text(text);
+                if (edit_item_val != text)
+                    $("tr[data-id=" + map[i] + "]")
+                        .find("td." + prop_column)
+                        .find("span[data-prop=" + prop + "]")
+                        .addClass("green_bg2");
+            }
+            // $('input.edit:checkbox').prop('checked', false);
+        } else
+        {
+            var data = { id: id, code: prop, value: val };
+            if (prop == "SECTION_PROV")
+            {
+                data["provider_id"] = provider_id;
+            }
+
+            send("edit_one", data);
+            if (prop == "SECTION_PROV" || prop == "IB_PROVIDER")
+            {
+                $("tr[data-id=" + id + "]")
+                    .find("td." + prop_column)
+                    .find("span[data-prop=" + prop + "]")
+                    .removeClass("red_bg2")
+                    .addClass("green_bg2")
+                    .addClass("edit_val")
+                    .text(text);
+            } else if (prop == "EXTRA")
+            {
+                $("tr[data-id=" + id + "]")
+                    .find("td." + prop_column)
+                    .find("span[data-prop=" + prop + "]")
+                    .removeClass("red_bg2")
+                    .addClass("green_bg2")
+                    .addClass("edit_val")
+                    .text(text);
+
+                var price_base = Number(
+                    $("tr[data-id=" + id + "]")
+                        .find("td." + prop_column)
+                        .find("span[data-prop=PRICE_BASE]")
+                        .text()
+                );
+                var price =
+                    (Number(text.substring(0, text.length - 1)) * price_base) / 100 +
+                    price_base;
+                $("tr[data-id=" + id + "]")
+                    .find("td." + prop_column)
+                    .find("span[data-prop=PRICE]")
+                    .text(price.toFixed());
+            } else if (prop == "CVET" || prop == 'SEZON' || prop == 'PROIZVODITEL')
+            {
+                if (edit_item_val != text)
+                    $("tr[data-id=" + id + "]")
+                        .find("td." + prop_column)
+                        .find("span[data-prop=" + prop + "]")
+                        .removeClass("red_bg2")
+                        .addClass("green_bg2");
+                if (val == "" || val == 0)
+                {
+                    text = "";
+                    $("tr[data-id=" + id + "]")
+                        .find("td." + prop_column)
+                        .find("span[data-prop=" + prop + "]")
+                        .removeClass("green_bg2")
+                        .addClass("red_bg2 form-control");
+                }
+                $("tr[data-id=" + id + "]")
+                    .find("td." + prop_column)
+                    .find("span[data-prop=" + prop + "]")
+                    .addClass("edit_val")
+                    .text(text);
+            } else
+            {
+                $("tr[data-id=" + id + "]")
+                    .find("td." + prop_column)
+                    .find("span[data-prop=" + prop + "]")
+                    .removeClass("red_bg2")
+                    .addClass("edit_val")
+                    .text(text);
+
+                if (edit_item_val != text)
+                    $("tr[data-id=" + id + "]")
+                        .find("td." + prop_column)
+                        .find("span[data-prop=" + prop + "]")
+                        .addClass("green_bg2");
+            }
+        }
+
+        $(this).remove();
+    });
